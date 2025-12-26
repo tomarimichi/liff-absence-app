@@ -53,61 +53,72 @@
       }
     }
     
-    async function testFetch() {
-      alert('🔍 GASテスト開始');
-      const testData = { test: 'ping', timestamp: new Date().toISOString() };
-      
-      try {
-        await fetch(GAS_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(testData)
-        });
-        alert('✅ GAS通信成功！GASログ確認を');
-      } catch (error) {
-        alert('❌ GAS通信失敗');
-      }
-    }
+async function testFetch() {
+  alert('🔍 GASテスト開始');
+  const testData = { test: 'ping', timestamp: new Date().toISOString() };
+  
+  try {
+    // mode: 'no-cors' を削除
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testData)
+    });
     
-    async function submitAbsence() {
-      const idToken = liff.getDecodedIDToken();
-      if (!idToken || !idToken.sub) {
-        alert('❌ ユーザーID取得失敗');
-        return;
-      }
-      
-      const data = {
-        userId: idToken.sub,
-        reason: document.getElementById('reason').value,
-        nextdate: document.getElementById('nextdate').value
-      };
-      
-      try {
-        await fetch(GAS_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        
-        await liff.sendMessages([{
-          type: 'text',
-          text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}`
-        }]);
-        
-        alert('✅ 欠席連絡を送信しました！');
-        liff.closeWindow();
-        
-      } catch (e) {
-        alert('✅ LINE通知完了！GAS確認を');
-      }
-    }
+    const result = await response.text();
+    console.log('GASレスポンス:', result);
+    alert('✅ GAS通信成功！\nレスポンス: ' + result);
+    
+  } catch (error) {
+    console.error('fetchエラー:', error);
+    alert('❌ GAS通信失敗: ' + error.message);
+  }
+}
+
+async function submitAbsence() {
+  const idToken = liff.getDecodedIDToken();
+  if (!idToken || !idToken.sub) {
+    alert('❌ ユーザーID取得失敗');
+    return;
+  }
+  
+  const data = {
+    userId: idToken.sub,
+    reason: document.getElementById('reason').value,
+    nextdate: document.getElementById('nextdate').value
+  };
+  
+  try {
+    // mode: 'no-cors' を削除
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.text();
+    console.log('欠席送信レスポンス:', result);
+    
+    // LINE通知
+    await liff.sendMessages([{
+      type: 'text',
+      text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}\nGAS: ${result}`
+    }]);
+    
+    alert('✅ 欠席連絡完了！\nスプレッドシート確認を');
+    liff.closeWindow();
+    
+  } catch (error) {
+    alert('❌ 送信エラー: ' + error.message);
+  }
+}
+
     
     initLiff();
   </script>
 </body>
 </html>
+
 
 
 
