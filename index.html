@@ -22,11 +22,40 @@
 
   <script>
     async function initLiff() {
-      await liff.init({ liffId: '2008657935-a7glOyOk' });
-      const idToken = liff.getDecodedIDToken();
-      document.getElementById('userId').textContent = idToken.sub.substring(0, 20) + '...';
-      document.getElementById('nextdate').valueAsDate = new Date(); // 今日をデフォルト
+      try {
+        await liff.init({ liffId: '2008657935-a7glOyOk' });
+        console.log('LIFF init成功');
+        
+        // ログイン状態確認＋強制ログイン
+        if (!liff.isLoggedIn()) {
+          console.log('未ログイン → ログイン要求');
+          liff.login({ redirectUri: window.location.href });
+          return;
+        }
+        
+        console.log('ログイン済み');
+        
+        // IDトークン取得
+        const idToken = liff.getDecodedIDToken();
+        console.log('IDトークン:', idToken ? '取得成功' : 'null');
+        
+        if (idToken && idToken.sub) {
+          document.getElementById('userId').textContent = idToken.sub.substring(0, 20) + '...';
+          document.getElementById('userId').style.color = 'green';
+        } else {
+          document.getElementById('userId').textContent = 'ID取得失敗（リロード）';
+          document.getElementById('userId').style.color = 'red';
+        }
+        
+        document.getElementById('nextdate').valueAsDate = new Date();
+        
+      } catch (error) {
+        console.error('LIFFエラー:', error);
+        document.getElementById('userId').textContent = 'LIFF初期化エラー: ' + error.message;
+        document.getElementById('userId').style.color = 'red';
+      }
     }
+
 
     async function submitAbsence() {
       const idToken = liff.getDecodedIDToken();
@@ -72,4 +101,5 @@ https://script.google.com/macros/s/AKfycbza4BIMHtH_OK0swWRbCmIK2prPToVgvCX7TWQkN
   </script>
 </body>
 </html>
+
 
