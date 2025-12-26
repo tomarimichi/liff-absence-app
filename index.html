@@ -9,7 +9,6 @@
   <div style="color:green;font-weight:bold;">
     ユーザーID: <span id="userId">読み込み中...</span>
   </div>
-  <p>12:42</p>
   <p>欠席理由: 
     <select id="reason">
       <option>体調不良</option>
@@ -18,34 +17,14 @@
     </select>
   </p>
   <p>欠席日: <input type="date" id="nextdate"></p>
-
-<!-- テストボタン追加（送信ボタンの直前） -->
-<button onclick="testFetch()" style="padding:10px 20px;background:#ff9900;color:white;border:none;border-radius:5px;margin:10px 0;">[テスト]GAS通信確認</button>
-// <script>内に追加（submitAbsence()の前）
-async function testFetch() {
-  alert('🔍 GASテスト開始');
   
-  const testData = { test: 'ping', timestamp: new Date().toISOString() };
-  
-  try {
-    const result = await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(testData)
-    });
-    
-    alert('✅ GAS通信成功！（GASログ確認）');
-    
-  } catch (error) {
-    alert('❌ fetchエラー: ' + error.message);
-  }
-}
-<!--テストボタンここまで-->
+  <button onclick="testFetch()" style="padding:10px 20px;background:#ff9900;color:white;border:none;border-radius:5px;margin:10px 0;">[テスト]GAS通信確認</button>
   
   <button onclick="submitAbsence()" style="padding:12px 24px;font-size:16px;background:#00b900;color:white;border:none;border-radius:5px;">欠席連絡を送信</button>
 
   <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyw1Z_Hg374OSYbZ31RGHGHBGUSIfWJCe927pNF8MqIheilggD0ghl7butV9W8eysOQ7w/exec';
+    
     async function initLiff() {
       try {
         await liff.init({ liffId: '2008657935-a7glOyOk' });
@@ -57,16 +36,12 @@ async function testFetch() {
           return;
         }
         
-        console.log('ログイン済み');
-        
         const idToken = liff.getDecodedIDToken();
-        console.log('IDトークン:', idToken ? '取得成功' : 'null');
-        
         if (idToken && idToken.sub) {
           document.getElementById('userId').textContent = idToken.sub.substring(0, 20) + '...';
           document.getElementById('userId').style.color = 'green';
         } else {
-          document.getElementById('userId').textContent = 'ID取得失敗（リロード）';
+          document.getElementById('userId').textContent = 'ID取得失敗';
           document.getElementById('userId').style.color = 'red';
         }
         
@@ -74,52 +49,62 @@ async function testFetch() {
         
       } catch (error) {
         console.error('LIFFエラー:', error);
-        document.getElementById('userId').textContent = 'LIFF初期化エラー: ' + error.message;
-        document.getElementById('userId').style.color = 'red';
+        document.getElementById('userId').textContent = 'LIFFエラー: ' + error.message;
       }
     }
-
+    
+    async function testFetch() {
+      alert('🔍 GASテスト開始');
+      const testData = { test: 'ping', timestamp: new Date().toISOString() };
+      
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(testData)
+        });
+        alert('✅ GAS通信成功！GASログ確認を');
+      } catch (error) {
+        alert('❌ GAS通信失敗');
+      }
+    }
+    
     async function submitAbsence() {
       const idToken = liff.getDecodedIDToken();
+      if (!idToken || !idToken.sub) {
+        alert('❌ ユーザーID取得失敗');
+        return;
+      }
+      
       const data = {
         userId: idToken.sub,
         reason: document.getElementById('reason').value,
         nextdate: document.getElementById('nextdate').value
       };
-
-      const GAS_URL = 'https://script.google.com/macros/s/AKfycbyw1Z_Hg374OSYbZ31RGHGHBGUSIfWJCe927pNF8MqIheilggD0ghl7butV9W8eysOQ7w/exec';
-
+      
       try {
         await fetch(GAS_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: {'Content-Type': 'application/json'},
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-
+        
         await liff.sendMessages([{
           type: 'text',
           text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}`
         }]);
-
-        alert('✅ 欠席連絡を送信しました！\nスプレッドシートを確認してください');
+        
+        alert('✅ 欠席連絡を送信しました！');
         liff.closeWindow();
-
+        
       } catch (e) {
-        await liff.sendMessages([{
-          type: 'text',
-          text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}\n（送信確認中）`
-        }]);
         alert('✅ LINE通知完了！GAS確認を');
       }
     }
-
+    
     initLiff();
   </script>
 </body>
 </html>
-
-
-
-
-
