@@ -18,6 +18,31 @@
     </select>
   </p>
   <p>欠席日: <input type="date" id="nextdate"></p>
+
+<!-- テストボタン追加（送信ボタンの直前） -->
+<button onclick="testFetch()" style="padding:10px 20px;background:#ff9900;color:white;border:none;border-radius:5px;margin:10px 0;">[テスト]GAS通信確認</button>
+// <script>内に追加（submitAbsence()の前）
+async function testFetch() {
+  alert('🔍 GASテスト開始');
+  
+  const testData = { test: 'ping', timestamp: new Date().toISOString() };
+  
+  try {
+    const result = await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testData)
+    });
+    
+    alert('✅ GAS通信成功！（GASログ確認）');
+    
+  } catch (error) {
+    alert('❌ fetchエラー: ' + error.message);
+  }
+}
+<!--テストボタンここまで-->
+  
   <button onclick="submitAbsence()" style="padding:12px 24px;font-size:16px;background:#00b900;color:white;border:none;border-radius:5px;">欠席連絡を送信</button>
 
   <script>
@@ -93,6 +118,7 @@
   </script>
 </body>
 </html>
+
 
 
 
