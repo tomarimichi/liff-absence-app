@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body style="padding:20px;font-family:sans-serif;">
+  <h3>欠席連絡フォーム</h3>
+  <div style="color:green;font-weight:bold;">
+    ユーザーID: <span id="userId"></span>
+  </div>
+  <p>test 12:54</p>
+  <p>欠席理由: 
+    <select id="reason">
+      <option>体調不良</option>
+      <option>通院</option>
+      <option>家庭事情</option>
+    </select>
+  </p>
+  <p>欠席日: <input type="date" id="nextdate"></p>
+  <button onclick="submitAbsence()" style="padding:12px 24px;font-size:16px;background:#00b900;color:white;border:none;border-radius:5px;">欠席連絡を送信</button>
+
+  <script>
+    async function initLiff() {
+      await liff.init({ liffId: '2008657935-a7glOyOk' });
+      const idToken = liff.getDecodedIDToken();
+      document.getElementById('userId').textContent = idToken.sub.substring(0, 20) + '...';
+      document.getElementById('nextdate').valueAsDate = new Date(); // 今日をデフォルト
+    }
+
+    async function submitAbsence() {
+      const idToken = liff.getDecodedIDToken();
+      const data = {
+        userId: idToken.sub,
+        reason: document.getElementById('reason').value,
+        nextdate: document.getElementById('nextdate').value
+      };
+
+      // ★★★ 実際の新しいGAS URL ★★★
+      const GAS_URL = 'https://script.google.com/macros/s/AKfycbzAoVDSXfmWSYWhHSms_pqeKKgEhVld6K9GDh5imcfA0HFdJIs8iwpeMAxEtH0bC5gj/exec'; // ←ここを新しいURLに！
+
+      try {
+        // no-corsモード（CORS回避）
+        await fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+
+        // LINEトークに確認メッセージ
+        await liff.sendMessages([{
+          type: 'text',
+          text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}`
+        }]);
+
+        alert('✅ 欠席連絡を送信しました！\nスプレッドシートを確認してください');
+        liff.closeWindow();
+
+      } catch (e) {
+        // no-corsではエラーキャッチされない仕様 → とりあえず成功扱い
+        await liff.sendMessages([{
+          type: 'text',
+          text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}\n（送信確認中）`
+        }]);
+        alert('✅ LINE通知完了！GAS確認を');
+      }
+    }
+
+    initLiff();
+  </script>
+</body>
+</html>
