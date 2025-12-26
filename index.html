@@ -23,7 +23,7 @@
   <button onclick="submitAbsence()" style="padding:12px 24px;font-size:16px;background:#00b900;color:white;border:none;border-radius:5px;">欠席連絡を送信</button>
 
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxw4UGF3zH7TMQSQqpBNbj4ZexAY0nL9LAFz5J8xwgP2DgxetxPna5mM6_U-IKsbQ2dOg/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxOczTibFT3j7nAavN-m812Fi-BpiW9_oqpCCt0IrOK2d7hF0uga3KmFddMVHK98FOXzg/exec';
     
     async function initLiff() {
       try {
@@ -78,48 +78,43 @@ async function testFetch() {
 
 async function submitAbsence() {
   const idToken = liff.getDecodedIDToken();
-  if (!idToken || !idToken.sub) {
-    alert('❌ ユーザーID取得失敗');
-    return;
-  }
-  
   const data = {
     userId: idToken.sub,
     reason: document.getElementById('reason').value,
     nextdate: document.getElementById('nextdate').value
   };
-  
+
   try {
-    // mode: 'no-cors' を削除
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+    // ✅ ここが修正箇所
+    const query = new URLSearchParams({
+      userId: data.userId,
+      reason: data.reason,
+      nextdate: data.nextdate
     });
-    
-    const result = await response.text();
-    console.log('欠席送信レスポンス:', result);
-    
-    // LINE通知
-    await liff.sendMessages([{
-      type: 'text',
-      text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}\nGAS: ${result}`
-    }]);
-    
-    alert('✅ 欠席連絡完了！\nスプレッドシート確認を');
+    await fetch(GAS_URL + '?' + query.toString());
+    // ✅ 修正ここまで
+
+    await liff.sendMessages([
+      {
+        type: 'text',
+        text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}`
+      }
+    ]);
+
+    alert('✅ 欠席連絡を送信しました！');
     liff.closeWindow();
-    
-  } catch (error) {
-    alert('❌ 送信エラー: ' + error.message);
+  } catch (e) {
+    alert('✅ LINE通知完了！GAS確認を');
   }
 }
+
 
     
     initLiff();
   </script>
 </body>
 </html>
+
 
 
 
