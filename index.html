@@ -61,7 +61,6 @@ async function testFetch() {
     // mode: 'no-cors' を削除
     const response = await fetch(GAS_URL, {
       method: 'POST',
-      mode: 'no-cors', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(testData)
     });
@@ -93,7 +92,6 @@ async function submitAbsence() {
     // mode: 'no-cors' を削除
     const response = await fetch(GAS_URL, {
       method: 'POST',
-      mode: 'no-cors', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
@@ -120,6 +118,7 @@ async function submitAbsence() {
   </script>
 </body>
 </html>
+
 
 
 
