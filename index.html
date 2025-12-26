@@ -23,7 +23,7 @@
   <button onclick="submitAbsence()" style="padding:12px 24px;font-size:16px;background:#00b900;color:white;border:none;border-radius:5px;">欠席連絡を送信</button>
 
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwe6RVOZpXuUjfUdlABKcd3G8ltqBPUQjbzOzs2FKnkP8Nzi1M-JNDMmGeb7WnbAdypTA/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwvP4S9Swr5zlMszS7ZCcu11tLZ7qiVjpIGFqg0zstfD8mT9tUCVqlfRF9dHHwIqqXbXg/exec';
     
     async function initLiff() {
       try {
@@ -61,6 +61,7 @@ async function testFetch() {
     // mode: 'no-cors' を削除
     const response = await fetch(GAS_URL, {
       method: 'POST',
+      mode: 'no-cors', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(testData)
     });
@@ -92,6 +93,7 @@ async function submitAbsence() {
     // mode: 'no-cors' を削除
     const response = await fetch(GAS_URL, {
       method: 'POST',
+      mode: 'no-cors', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
@@ -118,6 +120,7 @@ async function submitAbsence() {
   </script>
 </body>
 </html>
+
 
 
 
