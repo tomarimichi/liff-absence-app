@@ -7,9 +7,9 @@
 <body style="padding:20px;font-family:sans-serif;">
   <h3>欠席連絡フォーム</h3>
   <div style="color:green;font-weight:bold;">
-    ユーザーID: <span id="userId"></span>
+    ユーザーID: <span id="userId">読み込み中...</span>
   </div>
-  <p>test 12:13</p>
+  <p>test 12:21</p>
   <p>欠席理由: 
     <select id="reason">
       <option>体調不良</option>
@@ -26,7 +26,6 @@
         await liff.init({ liffId: '2008657935-a7glOyOk' });
         console.log('LIFF init成功');
         
-        // ログイン状態確認＋強制ログイン
         if (!liff.isLoggedIn()) {
           console.log('未ログイン → ログイン要求');
           liff.login({ redirectUri: window.location.href });
@@ -35,7 +34,6 @@
         
         console.log('ログイン済み');
         
-        // IDトークン取得
         const idToken = liff.getDecodedIDToken();
         console.log('IDトークン:', idToken ? '取得成功' : 'null');
         
@@ -56,7 +54,6 @@
       }
     }
 
-
     async function submitAbsence() {
       const idToken = liff.getDecodedIDToken();
       const data = {
@@ -65,11 +62,9 @@
         nextdate: document.getElementById('nextdate').value
       };
 
-      // ★★★ 実際の新しいGAS URL ★★★
-      const GAS_URL = 'https://script.google.com/macros/s/AKfycbza4BIMHtH_OK0swWRbCmIK2prPToVgvCX7TWQkNx-ImKD-OLXbF_a-h5Iy294XdcleYA/exec'; // ←ここを新しいURLに！
+      const GAS_URL = 'https://script.google.com/macros/s/AKfycbyM3_F6kTiQwH3w4LoVvoZ9a1Eb_h2I2w5XfKVDF8rWbwGADW5w7OAG4uESoyIj3Yyytg/exec';
 
       try {
-        // no-corsモード（CORS回避）
         await fetch(GAS_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -77,7 +72,6 @@
           body: JSON.stringify(data)
         });
 
-        // LINEトークに確認メッセージ
         await liff.sendMessages([{
           type: 'text',
           text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}`
@@ -87,7 +81,6 @@
         liff.closeWindow();
 
       } catch (e) {
-        // no-corsではエラーキャッチされない仕様 → とりあえず成功扱い
         await liff.sendMessages([{
           type: 'text',
           text: `【欠席連絡】\n利用者ID: ${data.userId.substring(0,15)}...\n欠席理由: ${data.reason}\n欠席日: ${data.nextdate}\n（送信確認中）`
@@ -100,7 +93,3 @@
   </script>
 </body>
 </html>
-
-
-
-
